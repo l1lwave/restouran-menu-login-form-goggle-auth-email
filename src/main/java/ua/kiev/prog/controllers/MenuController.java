@@ -9,11 +9,16 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import ua.kiev.prog.json.Rate;
 import ua.kiev.prog.models.Dish;
 import ua.kiev.prog.models.Order;
+import ua.kiev.prog.retrievers.RateRetriever;
 import ua.kiev.prog.services.DishService;
 import ua.kiev.prog.services.OrderService;
+import ua.kiev.prog.services.UserService;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -23,10 +28,12 @@ public class MenuController {
 
     private final DishService dishService;
     private final OrderService orderService;
+    private final RateRetriever rateRetriever;
 
-    public MenuController(DishService dishService, OrderService orderService) {
+    public MenuController(DishService dishService, OrderService orderService, RateRetriever rateRetriever) {
         this.dishService = dishService;
         this.orderService = orderService;
+        this.rateRetriever = rateRetriever;
     }
 
     @GetMapping("/")
@@ -40,6 +47,10 @@ public class MenuController {
         model.addAttribute("dishes", dishes);
         model.addAttribute("allPages", getPageCount());
         model.addAttribute("count", orderService.countOrder());
+        double uah = rateRetriever.getRate().getRates().getUah();
+        BigDecimal bd = new BigDecimal(uah).setScale(2, RoundingMode.HALF_UP);
+        double roundedUah = bd.doubleValue();
+        model.addAttribute("rate", roundedUah);
 
         return "index";
     }
@@ -51,6 +62,10 @@ public class MenuController {
 
         model.addAttribute("dishes", dishes);
         model.addAttribute("count", orderService.countOrder());
+        double uah = rateRetriever.getRate().getRates().getUah();
+        BigDecimal bd = new BigDecimal(uah).setScale(2, RoundingMode.HALF_UP);
+        double roundedUah = bd.doubleValue();
+        model.addAttribute("rate", roundedUah);
 
         return "index";
     }
@@ -63,6 +78,10 @@ public class MenuController {
             dishesInOrder.add(order.getDish());
         }
         model.addAttribute("dishesOrder", dishesInOrder);
+        double uah = rateRetriever.getRate().getRates().getUah();
+        BigDecimal bd = new BigDecimal(uah).setScale(2, RoundingMode.HALF_UP);
+        double roundedUah = bd.doubleValue();
+        model.addAttribute("rate", roundedUah);
 
         return "order";
     }
